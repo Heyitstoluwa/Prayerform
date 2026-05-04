@@ -57,6 +57,7 @@
     @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
     .toast.success { background: rgba(50,110,50,0.2); border: 0.5px solid rgba(70,170,70,0.3); color: #90EAA0; }
     .toast.error { background: rgba(130,35,25,0.2); border: 0.5px solid rgba(190,70,50,0.3); color: #F0A090; }
+    .debug { display: none; margin-top: 8px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 0.5px solid rgba(255,200,80,0.12); font-family: monospace; font-size: 11px; color: rgba(255,200,100,0.75); word-break: break-all; white-space: pre-wrap; line-height: 1.7; animation: fadein 0.3s ease; }
   </style>
 </head>
 <body>
@@ -111,12 +112,13 @@
     </button>
 
     <div class="toast" id="p-toast"></div>
+    <div class="debug" id="p-debug"></div>
     <p class="notice">Received with care &nbsp;·&nbsp; Held in confidence</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-    emailjs.init({ publicKey: 'c5gqusEpJCXM-uePz' });
+    emailjs.init({ publicKey: 'AxJ3T3BtPHjqeUpkZ' });
 
     const pc = document.getElementById('particles');
     for (let i = 0; i < 28; i++) {
@@ -135,21 +137,45 @@
 
     function showToast(msg, type) {
       const t = document.getElementById('p-toast');
-      t.textContent = msg; t.className = 'toast ' + type; t.style.display = 'block';
+      t.textContent = msg;
+      t.className = 'toast ' + type;
+      t.style.display = 'block';
+    }
+
+    function showDebug(err) {
+      const d = document.getElementById('p-debug');
+      let msg = '';
+      if (err && err.status && err.text) {
+        msg = 'Status ' + err.status + ': ' + err.text;
+      } else if (typeof err === 'string') {
+        msg = err;
+      } else {
+        try { msg = JSON.stringify(err, null, 2); } catch(e) { msg = String(err); }
+      }
+      d.textContent = msg;
+      d.style.display = 'block';
     }
 
     function submitPrayer() {
       const request = document.getElementById('p-request').value.trim();
       if (!request) { showToast('Please write your prayer request before sending.', 'error'); return; }
+
       const btn = document.getElementById('p-submit');
-      btn.disabled = true; btn.textContent = 'Sending...';
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      document.getElementById('p-debug').style.display = 'none';
+      document.getElementById('p-toast').style.display = 'none';
+
       emailjs.send('service_20j63xt', 'template_vmpkuk4', { prayer_request: request })
         .then(() => {
           showToast('Your prayer has been received. We are praying with you.', 'success');
           document.getElementById('p-request').value = '';
           updateCount();
         })
-        .catch(() => showToast('Something went wrong. Please try again.', 'error'))
+        .catch((err) => {
+          showToast('Something went wrong. See details below.', 'error');
+          showDebug(err);
+        })
         .finally(() => {
           btn.disabled = false;
           btn.innerHTML = '<span class="shimmer"></span>Send Prayer Request';
