@@ -143,7 +143,7 @@
       if (!request) { showToast('Please write your prayer request before sending.', 'error'); return; }
       const btn = document.getElementById('p-submit');
       btn.disabled = true; btn.textContent = 'Sending...';
-      emailjs.send('service_20j63xt', 'template_vmpkuk4', { prayer_request: request })
+      emailjs.send('service_5ijr3ma', 'template_l9cugcg', { prayer_request: request })
         .then(() => {
           showToast('Your prayer has been received. We are praying with you.', 'success');
           document.getElementById('p-request').value = '';
